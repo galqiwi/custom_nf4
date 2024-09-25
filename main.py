@@ -45,11 +45,31 @@ def dequantize_weight(weight_quantized, scales, block_size = 64, codes=NF4_CODES
     ).reshape(out_dim, in_dim)
 
 
-def main():
-    weight = torch.randn(128, 128)
+def quantize_dequantize_weight(weight, block_size=64, codes=NF4_CODES):
+    weight_quantized, scales = quantize_weight(weight, codes=codes)
+    scales = scales.half()
+    return dequantize_weight(weight_quantized, scales, codes=codes)
 
-    weight_quantized, scales = quantize_weight(weight)
-    dequantize_weight(weight_quantized, scales)
+
+def main():
+    codes = NF4_CODES
+
+    weight = torch.randn(1024, 1024 * 2)
+
+    weight_quantized, scales = quantize_weight(weight, codes=codes)
+    scales = scales.half()
+
+    output = dequantize_weight(weight_quantized, scales, codes=codes)
+
+    assert 0 <= weight_quantized.min().item()
+    assert weight_quantized.max().item() < 16
+
+    print(weight_quantized.shape, weight_quantized.dtype)
+    print(scales.shape, scales.dtype)
+
+    print(
+        (((output - weight).norm() ** 2) / (weight.norm() ** 2)).item()
+    )
 
 
 if __name__ == '__main__':
