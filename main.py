@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 
 NF4_CODES = torch.tensor([
     -1.0, -0.6961928009986877, -0.5250730514526367, -0.39491748809814453, -0.28444138169288635, -0.18477343022823334,
@@ -46,9 +45,9 @@ def dequantize_weight(weight_quantized, scales, block_size = 64, codes=NF4_CODES
 
 
 def quantize_dequantize_weight(weight, block_size=64, codes=NF4_CODES):
-    weight_quantized, scales = quantize_weight(weight, codes=codes)
+    weight_quantized, scales = quantize_weight(weight, block_size=block_size, codes=codes)
     scales = scales.half()
-    return dequantize_weight(weight_quantized, scales, codes=codes)
+    return dequantize_weight(weight_quantized, scales, block_size=block_size, codes=codes)
 
 
 def main():
